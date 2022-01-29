@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>GLSL-test</title>
+</head>
+
+<body>
+<canvas id="main-canvas"></canvas>
+
+<!-- 顶点着色器 -->
+<script type="notjs" id="vertex-shader-2d">
+      attribute vec4 a_position;
+
+      void main() {
+          gl_Position = a_position;
+      }
+    </script>
+
+<!-- 片段着色器 -->
+<script type="notjs" id="fragment-shader-2d">
+      precision mediump float;
+
+      void main() {
+          gl_FragColor = vec4(1, 0.3, 0.5, 1);
+      }
+    </script>
+
+<script>
+    // 全局变量
+    let gl;
+
+    // 准备WebGL上下文
+    function prepareContext() {
+        // 使用Canvas
+        let main_canvas = document.querySelector("#main-canvas");
+        main_canvas.setAttribute("width", "640");
+        main_canvas.setAttribute("height", "640");
+        gl = main_canvas.getContext("webgl");
+        if (!gl) {
+            alert("无法使用WebGL！");
+        } else {
+            console.log(gl);
+        }
+    }
+
+    // 编译
+    function setupShader(gl, type, source) {
+        let shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+
+        let success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+        if (success) {
+            return shader;
+        }
+
+        console.log(gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+    }
+
+    // 链接
+    function linkShader(gl, vertexShader, fragmentShader) {
+        let program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        let success = gl.getProgramParameter(program, gl.LINK_STATUS);
+        if (success) {
+            return program;
+        }
+
+        console.log(gl.getProgramInfoLog(program));
+        gl.deleteProgram(program);
+    }
+
+    // 创建缓冲区，并填入顶点数据
+    function createBuffer(data) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+    }
+
+    (function main() {
+        // 环境上下文准备
+        prepareContext();
+
+        // 着色器准备
+        const vertex_shader_source = document.querySelector("#vertex-shader-2d").text,
+            fragment_shader_source = document.querySelector("#fragment-shader-2d").text;
+
+        // 编译
+        let vertex_shader = setupShader(gl, gl.VERTEX_SHADER, vertex_shader_source),
+            fragment_shader = setupShader(gl, gl.FRAGMENT_SHADER, fragment_shader_source);
+
+        // 链接
+        let shaderProgram = linkShader(gl, vertex_shader, fragment_shader);
+        let position_attribute_location = gl.getAttribLocation(shaderProgram, "a_position");
+
+        // 准备输入数据
+        createBuffer([0, -0.5, -0.3, 0.2, 0.2, 0.5, -0.5, -0.5, -0.4, -0.2, -0.7, 0]);
+
+        // 准备画布
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // 加载着色器，准备读取缓冲区的数据
+        gl.useProgram(shaderProgram);
+        gl.enableVertexAttribArray(position_attribute_location);
+        gl.vertexAttribPointer(position_attribute_location, 2, gl.FLOAT, false, 0, 0);
+
+        // 执行绘制
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    })();
+</script>
+</body>
+</html>

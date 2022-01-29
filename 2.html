@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>particles-01</title>
+    <script type="text/javascript" src="lib/three.js"></script>
+    <script type="text/javascript" src="lib/stats.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body>
+<script>
+    let geom = new THREE.Geometry();//几何
+    let material = new THREE.PointsMaterial({size: 15, vertexColors: true, color: 0xffffff});//点云材料
+    //创建64万个点云粒子
+    for (let x = -4; x < 4; x++) {
+        for (let y = -4; y < 4; y++) {
+            let particle = new THREE.Vector3(x * Math.random(), y * Math.random(), 0);//三维点
+            geom.vertices.push(particle);
+            geom.colors.push(new THREE.Color(0xffffff));
+        }
+    }
+    let cloud = new THREE.Points(geom, material);//新建点云
+    scene.add(cloud);
+</script>
+</body>
+</html>
